@@ -2,6 +2,21 @@ local PANEL = {}
 local curent_panel 
 local red_select = Color(192,0,0)
 
+-- Frame-time based lerp function for smooth animations (matching original Z-City implementation)
+local function FrameTimeClamped(ft)
+    return math.Clamp(ft or 0.033, 0.001, 0.1)
+end
+
+local function lerpFrameTime2(lerp, frameTime)
+    local ft = frameTime or 0.033
+    if lerp == 1 then return 1 end
+    return math.Clamp(lerp * FrameTimeClamped(ft) * 150, 0, 1)
+end
+
+local function LerpFT(lerp, source, set)
+    return Lerp(lerpFrameTime2(lerp), source, set)
+end
+
 local Selects = {
     
     
@@ -27,6 +42,7 @@ local Selects = {
         btn.x = btn:GetX()
 
         function btn:DoClick()
+            surface.PlaySound("buttons/button14.wav")
             luaMenu:Close()
             hg.SelectPlayerRole(nil, "soe")
         end
@@ -55,6 +71,7 @@ local Selects = {
         btn.x = btn:GetX()
 
         function btn:DoClick()
+            surface.PlaySound("buttons/button14.wav")
             luaMenu:Close()
             hg.SelectPlayerRole(nil, "standard")
         end
@@ -330,21 +347,22 @@ function PANEL:AnimateButtons()
     for i, btn in ipairs(buttons) do
         timer.Simple(delay * (i - 1), function()
             if IsValid(btn) then
-                btn:AlphaTo(255, 0.15, 0)
+                btn:AlphaTo(255, 0.15, 0, function()
+                    if i == #buttons then
+                        surface.PlaySound("ui/buttonrollover.wav")
+                    end
+                end)
             end
         end)
     end
 end
 
 function PANEL:First( ply )
+    surface.PlaySound("ui/buttonclick.wav")
     self:AlphaTo( 255, 0.1, 0, nil )
     
     -- Start typewriter effect for buttons
     self:AnimateButtons()
-end
-
-function PANEL:First( ply )
-    self:AlphaTo( 255, 0.1, 0, nil )
 end
 
 local gradient_d = surface.GetTextureID("vgui/gradient-d")
@@ -381,6 +399,8 @@ function PANEL:AddSelect( pParent, strTitle, tbl )
     if tbl.CreatedFunc then tbl.CreatedFunc(btn, self, luaMenu) end
     btn.RColor = Color(225,225,225)
     function btn:DoClick()
+        surface.PlaySound("buttons/button14.wav")
+        
         -- ,kz оптимизировать надо, но идёт ошибка(кэшировать бы luaMenu.panelparrent вместо вызова его каждый раз)
         if curent_panel == string.lower(strTitle) then 
             luaMenu.panelparrent:AlphaTo(0,0.2,0,function()
@@ -413,14 +433,22 @@ function PANEL:AddSelect( pParent, strTitle, tbl )
     end
 
     function btn:Think()
+        local wasHovered = self.HoverLerp and self.HoverLerp > 0.1
+        
         self.HoverLerp = LerpFT(
-            0.1,
+            0.03,
             self.HoverLerp or 0,
             (self:IsHovered()
             or (IsValid(self:GetChild(0)) and self:GetChild(0):IsHovered())
             or (IsValid(self:GetChild(0)) and IsValid(self:GetChild(0):GetChild(0)) and self:GetChild(0):GetChild(0):IsHovered()))
             and 1 or 0
         )
+        
+        -- Play hover sound when entering hover state
+        local isHovered = self.HoverLerp and self.HoverLerp > 0.1
+        if isHovered and not wasHovered then
+            surface.PlaySound("ui/buttonrollover.wav")
+        end
 
         local v = self.HoverLerp
         self:SetTextColor(self.RColor:Lerp(red_select, v))
