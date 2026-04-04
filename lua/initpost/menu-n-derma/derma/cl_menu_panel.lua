@@ -303,27 +303,6 @@ function PANEL:Init()
         gui.OpenURL("https://github.com/SildomLandor/REWORKED-CITY")
     end
 
-function PANEL:First( ply )
-    self:AlphaTo( 255, 0.1, 0, nil )
-    
-    -- Start typewriter effect for buttons
-    self:AnimateButtons()
-end
-
--- Typewriter animation for buttons appearing from top to bottom
-function PANEL:AnimateButtons()
-    local buttons = self.Buttons
-    local delay = self.ButtonDelay or 0.08
-    
-    for i, btn in ipairs(buttons) do
-        timer.Simple(delay * (i - 1), function()
-            if IsValid(btn) then
-                btn:AlphaTo(255, 0.15, 0)
-            end
-        end)
-    end
-end
-
     local version = vgui.Create("DLabel", bottomDock)
     version:Dock(BOTTOM)
     version:DockMargin(ScreenScale(10), 0, 0, 0)
@@ -341,6 +320,27 @@ end
     zteam:SetText("Authors: uzelezz, Sadsalat, Mr.Point, Zac90, Deka, Mannytko, \nSildom Landor, Frex, Vegeban(Менеджер) (Создатели ганпака      Threeple,LDmunder,EL_SOSO)")
     zteam:SetContentAlignment(4)
     zteam:SizeToContents()
+end
+
+-- Typewriter animation for buttons appearing from top to bottom
+function PANEL:AnimateButtons()
+    local buttons = self.Buttons
+    local delay = self.ButtonDelay or 0.08
+    
+    for i, btn in ipairs(buttons) do
+        timer.Simple(delay * (i - 1), function()
+            if IsValid(btn) then
+                btn:AlphaTo(255, 0.15, 0)
+            end
+        end)
+    end
+end
+
+function PANEL:First( ply )
+    self:AlphaTo( 255, 0.1, 0, nil )
+    
+    -- Start typewriter effect for buttons
+    self:AnimateButtons()
 end
 
 function PANEL:First( ply )
